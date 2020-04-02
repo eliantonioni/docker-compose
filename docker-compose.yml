@@ -1,0 +1,64 @@
+version: '3'
+
+services:
+  database:
+    image: postgres
+    container_name: dev-postgres-2
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - 5434:5432
+    environment:
+      - POSTGRES_PASSWORD=postgres
+
+  crshb-app:
+    image: 172.17.0.6:5000/crshb/crshb-app:crshb-deploy-dev-61
+    container_name: crshb-app-2
+    links:
+      - database
+    ports:
+      - 8004:8080
+    environment:
+      - DATABASE_DRIVER=org.postgresql.Driver
+      - DATABASE_USER=crshb
+      - DATABASE_PASSWORD=e5Fd*CW69!Jr
+      - DATABASE_URL=jdbc:postgresql://database:5432/crshb
+      - EP_TOKEN_AUTH_HEADER=\"Basic Y3JmdDoxMjM0NTY=\"
+      - EP_TOKEN_URL=http://rshb-app1.sbl.local:8003/emu-api/v1/ep-token/oauth/token
+      - SMS_GATEWAY_SMS_SEND_URL=http://10.7.27.5:9997/rest/api/v1/sms/send
+      - ESIA_GATEWAY_AUTH_LINK_URL=http://rshb-app1.sbl.local:8003/emu-api/v1/ep-esia/authorization/link
+      - ESIA_GATEWAY_REDIRECT_URL=http://dev.rshb.fil-it.ru/gosuslugi-spinner
+      - ESIA_GATEWAY_REDIRECT_VIA_EP_GATEWAY=true
+      - ESIA_GATEWAY_AUTH_CODE_URL=http://rshb-app1.sbl.local:8003/emu-api/v1/ep-esia/authorization/oauth2/te
+      - ESIA_GATEWAY_AUTH_USER_INFO_URL=http://rshb-app1.sbl.local:8003/emu-api/v1/ep-esia/authorization/user_info
+    depends_on:
+      - database
+
+  crshb-light-app:
+    image: 172.17.0.6:5000/crshb/crshb-light-app:crshb-deploy-dev-61
+    container_name: crshb-light-app-2
+    links:
+      - crshb-app
+      - database
+    ports:
+      - 8005:8080
+    environment:
+      - MAIN_APP_URL=http://crshb-app:8080
+      - DATABASE_DRIVER=org.postgresql.Driver
+      - DATABASE_USER=crshb
+      - DATABASE_PASSWORD=e5Fd*CW69!Jr
+      - DATABASE_URL=jdbc:postgresql://database:5432/crshb
+      - SMS_GATEWAY_EMULATED=true
+      - SMS_GATEWAY_EXPIRATION_PERIOD=180
+    depends_on:
+      - crshb-app
+      - database
+
+volumes:
+  db-data:
+    external: true
+
+networks:
+  default:
+    external:
+      name: crshb-network
