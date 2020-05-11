@@ -12,12 +12,10 @@ services:
       - POSTGRES_PASSWORD=postgres
 
   crshb-app:
-    image: 172.17.0.6:5000/crshb/crshb-app:crshb-deploy-dev-61
+    image: http://rshb-app1.sbl.local:5000/crshb/crshb-app:crshb-deploy-dev-61
     container_name: crshb-app-2
     links:
       - database
-    ports:
-      - 8004:8080
     environment:
       - DATABASE_DRIVER=org.postgresql.Driver
       - DATABASE_USER=crshb
@@ -35,19 +33,15 @@ services:
       - database
 
   crshb-light-app:
-    image: 172.17.0.6:5000/crshb/crshb-light-app:crshb-deploy-dev-61
+    image: http://rshb-app1.sbl.local:5000/crshb/crshb-light-app:crshb-deploy-dev-61
     container_name: crshb-light-app-2
     links:
       - crshb-app
       - database
     ports:
-      - 8005:8080
+      - 8004:8080
     environment:
       - MAIN_APP_URL=http://crshb-app:8080
-      - DATABASE_DRIVER=org.postgresql.Driver
-      - DATABASE_USER=crshb
-      - DATABASE_PASSWORD=e5Fd*CW69!Jr
-      - DATABASE_URL=jdbc:postgresql://database:5432/crshb
       - SMS_GATEWAY_EMULATED=true
       - SMS_GATEWAY_EXPIRATION_PERIOD=180
     depends_on:
